@@ -12,7 +12,7 @@ public class LdifFileRenderer
         
         var output = new StringBuilder();
 
-        for(int offset = 0; entries.Count > offset + chunkSize || offset == 0; offset += chunkSize)
+        for(int offset = 0; offset < entries.Count; offset += chunkSize)
         {
             output.AppendLine("version: 1");
             output.AppendLine();
