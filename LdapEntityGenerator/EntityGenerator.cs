@@ -46,7 +46,9 @@ public class EntityGenerator
         entries.AddRange(CreateOUs(opts));
 
         if (opts.UserCount <= 0) return entries;
-
+        
+        HashSet<string> dnLut = new HashSet<string>();
+        
         for (int x = 1; x <= opts.UserCount; x++)
         {
             LdapEntry entry = default;
@@ -67,9 +69,12 @@ public class EntityGenerator
                 entry.ac.Value = (Rnd.Next(8999) + 1000).ToString();
                 entry.l.Value = new RandomNameGeneratorNG.PlaceNameGenerator().GenerateRandomPlaceName();
 
-                isUnique = entries.All(e => e.dn != entry.dn);
+                isUnique = !dnLut.Contains(entry.dn);
+
+                if (isUnique)
+                    dnLut.Add(entry.dn);
                 
-                if (!isUnique)
+                else
                     tw.WriteLine($"Retry User: {x}");
             }
 
