@@ -9,7 +9,7 @@ public class LdapEntry : IRenderableEntry
     public LdapEntryAttribute<string> telephoneNumber { get; } = new(nameof(telephoneNumber));
     public LdapEntryAttribute<string> mobile { get; } = new(nameof(mobile));
     public LdapEntryAttribute<string> mail { get; } = new(nameof(mail));
-    public string sn => fn.Value;
+    public LdapEntryAttribute<string> sn => new(nameof(sn),fn.Value);
     public bool HassAMAccountName { get; set; }
     public string sAMAccountName => HassAMAccountName ? uid.Value : string.Empty;
     public LdapEntryAttributeList<string> ou { get; } = new(nameof(ou));
@@ -59,7 +59,7 @@ public class LdapEntry : IRenderableEntry
 
 
         if (!string.IsNullOrEmpty(GetCn.Value)) sb.AppendLine(GetCn.AsAttribute());
-        if (!string.IsNullOrEmpty(sn)) sb.AppendLine(sn);
+        if (!string.IsNullOrEmpty(sn.Value)) sb.AppendLine(sn.AsAttribute());
 
         if (HassAMAccountName) sb.AppendLine(sAMAccountName);
 
