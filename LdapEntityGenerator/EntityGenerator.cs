@@ -29,16 +29,18 @@ public class EntityGenerator
         public bool CreateRootOu { get; set; }
     }
 
-    public List<LdapEntry> GetLdapEntries(LdapEntryOptions opts)
+    RandomNameGeneratorNG.PersonNameGenerator nameGen = new RandomNameGeneratorNG.PersonNameGenerator();
+
+    public List<LdapEntry> GetLdapEntries(LdapEntryOptions opts, TextWriter tw)
     {
         List<LdapEntry> entries = new List<LdapEntry>();
 
-        if(opts.CreateBaseOrganization)
+        if (opts.CreateBaseOrganization)
             entries.Add(CreateBaseDn(opts));
-        
+
         entries.AddRange(CreateAdmin(opts));
-        
-        if(opts.CreateBaseOrganization)
+
+        if (opts.CreateBaseOrganization)
             entries.Add(CreateRootOu(opts));
 
         entries.AddRange(CreateOUs(opts));
@@ -49,20 +51,26 @@ public class EntityGenerator
         {
             LdapEntry entry = default;
 
-            bool any = true;
+            bool isUnique = false;
 
-            while (any)
+            if(x % 10 == 0)
+                tw.WriteLine($"Progress: {(x * 100.0 / opts.UserCount):F2} %");
+
+            while (!isUnique)
             {
                 entry = GetEntry(opts.BaseDomain, opts.RootOu, opts.ChangeType);
 
                 // Get the random items for this Entry that we use in other things
-                entry.fn.Value = new RandomNameGeneratorNG.PersonNameGenerator().GenerateRandomFirstName();
-                entry.gn.Value = new RandomNameGeneratorNG.PersonNameGenerator().GenerateRandomFirstName();
+                entry.fn.Value = nameGen.GenerateRandomFirstName();
+                entry.gn.Value = nameGen.GenerateRandomLastName();
                 entry.ou.Value.Add(GetRand(opts.OrgUnits));
                 entry.ac.Value = (Rnd.Next(8999) + 1000).ToString();
                 entry.l.Value = new RandomNameGeneratorNG.PlaceNameGenerator().GenerateRandomPlaceName();
 
-                any = entries.Any(e => e.dn == entry.dn);
+                isUnique = entries.All(e => e.dn != entry.dn);
+                
+                if (!isUnique)
+                    tw.WriteLine($"Retry User: {x}");
             }
 
             entries.Add(entry);
@@ -114,17 +122,17 @@ public class EntityGenerator
 
         return entry;
     }
-    
+
     private LdapEntry CreateRootOu(LdapEntryOptions p)
     {
         var entry = new LdapEntry(p.BaseDomain);
-        
+
         entry.objectClass.Value.Add(ObjectClass.top);
         entry.objectClass.Value.Add(ObjectClass.organizationalUnit);
         entry.ou.Value.Add(p.RootOu);
-        
+
         entry.changetype.Value = p.ChangeType;
-        
+
         return entry;
     }
 
