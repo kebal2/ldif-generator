@@ -6,28 +6,36 @@ namespace LdapEntityGenerator;
 
 public class LdifFileRenderer
 {
-    public string[] RenderDiff(IList<LdapEntry> entries, int chunkSize = 1000)
+    public string[] RenderDiff(IList<LdapEntry> entries, int chunkSize = 2_000_000)
     {
         HashSet<string> chunks = new HashSet<string>();
-        
-        var output = new StringBuilder();
 
-        for(int offset = 0; offset < entries.Count; offset += chunkSize)
+        var output = NewChunk();
+
+        foreach (IRenderableEntry entry in entries)
         {
-            output.AppendLine("version: 1");
-            output.AppendLine();
+            var render = entry.Render();
 
-            var e = entries.Skip(offset).Take(chunkSize);
-            
-            foreach (IRenderableEntry entry in e)
+            if (output.Length + render.Length > chunkSize)
             {
-                output.AppendLine(entry.Render());
+                chunks.Add(output.ToString());
+                output = NewChunk();
             }
-
-            chunks.Add(output.ToString());
-            output.Clear();
+            
+            output.AppendLine(render);
         }
 
+        chunks.Add(output.ToString());
         return chunks.ToArray();
+    }
+    private StringBuilder NewChunk()
+    {
+        StringBuilder output = new StringBuilder();
+
+        output.AppendLine("version: 1");
+        output.AppendLine();
+
+
+        return output;
     }
 }
