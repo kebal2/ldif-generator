@@ -1,6 +1,6 @@
 ﻿namespace LdapEntityGenerator.Entities;
 
-public class LdapEntryAttribute<T> where T : class
+public class LdapEntryAttribute<T>
 {
     public string Name { get; }
     public T Value { get; set; }

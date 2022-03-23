@@ -27,6 +27,7 @@ public class EntityGenerator
         public string Password { get; set; }
         public bool CreateBaseOrganization { get; set; }
         public bool CreateRootOu { get; set; }
+        public string[] Groups { get; set; }
     }
 
     RandomNameGeneratorNG.PersonNameGenerator nameGen = new RandomNameGeneratorNG.PersonNameGenerator();
@@ -43,42 +44,118 @@ public class EntityGenerator
         if (opts.CreateBaseOrganization)
             entries.Add(CreateRootOu(opts));
 
-        entries.AddRange(CreateOUs(opts));
+        var createdOUs = CreateOUs(opts);
+        var groups = CreateGroups(opts, createdOUs);
+
+        entries.AddRange(createdOUs);
+        entries.AddRange(groups);
 
         if (opts.UserCount <= 0) return entries;
+        entries.AddRange(CreateUsers(opts, tw, groups));
+
+        return entries;
+    }
+
+    // fix for entries like: CN=Billing\, Payment and Collection Office,OU=Recipients,OU=ADC,DC=pgsm,DC=hu
+    private List<LdapEntry> CreateGroups(LdapEntryOptions opts, IList<LdapEntry> ous)
+    {
+        int baseGidNumber = 1000;
+
+        List<LdapEntry> r = new();
+        if (!opts.OrgUnits.Any()) return r;
         
+        for (var i = 0; i < opts.Groups.Length; i++)
+        {
+            var @group = opts.Groups[i];
+            var destOu = ous[Rnd.Next(ous.Count)];
+
+            LdapEntry entry = new LdapEntry(opts.BaseDomain)
+            {
+                cn = { Value = { @group } },
+                changetype = { Value = opts.ChangeType }
+            };
+
+            entry.ou.Value.AddRange(destOu.ou.Value);
+            entry.gidnumber.Value = baseGidNumber + i;
+            entry.objectClass.Value.Add(ObjectClass.top);
+            entry.objectClass.Value.Add(ObjectClass.posixGroup);
+
+            r.Add(entry);
+        }
+
+        return r;
+    }
+
+    private List<LdapEntry> CreateUsers(LdapEntryOptions opts, TextWriter tw, IList<LdapEntry> groupsList)
+    {
+        List<LdapEntry> entries = new List<LdapEntry>();
         HashSet<string> dnLut = new HashSet<string>();
-        
+
+        int baseUidNumber = 2000;
+
+        var groups = groupsList?.ToArray();
+
         for (int x = 1; x <= opts.UserCount; x++)
         {
             LdapEntry entry = default;
 
             bool isUnique = false;
 
-            if(x % 10 == 0)
+            if (x % 10 == 0)
                 tw.WriteLine($"Progress: {(x * 100.0 / opts.UserCount):F2} %");
 
             while (!isUnique)
             {
-                entry = GetEntry(opts.BaseDomain, opts.RootOu, opts.ChangeType);
+                entry = new LdapEntry(opts.BaseDomain)
+                {
+                    changetype = {Value = opts.ChangeType }
+                };
 
                 // Get the random items for this Entry that we use in other things
-                entry.fn.Value = nameGen.GenerateRandomFirstName();
-                entry.gn.Value = nameGen.GenerateRandomLastName();
-                entry.ou.Value.Add(GetRand(opts.OrgUnits));
+                var fn = nameGen.GenerateRandomFirstName();
+                var ln = nameGen.GenerateRandomLastName();
+
+                entry.fn.Value = fn;
+                entry.gn.Value = ln;
+
                 entry.ac.Value = (Rnd.Next(8999) + 1000).ToString();
                 entry.l.Value = new RandomNameGeneratorNG.PlaceNameGenerator().GenerateRandomPlaceName();
+
+                entry.objectClass.Value.Add(ObjectClass.top);
+                entry.objectClass.Value.Add(ObjectClass.person);
+                entry.objectClass.Value.Add(ObjectClass.inetOrgPerson);
+
+                if (groups is null || !groups.Any())
+                {
+                    entry.ou.Value.Add(opts.RootOu);
+                    entry.ou.Value.Add(GetRand(opts.OrgUnits));
+                    
+                    entry.objectClass.Value.Add(ObjectClass.organizationalPerson);
+
+                }
+                else
+                {
+                    var group = GetRand(groups);
+                    
+                    entry.gidnumber.Value = group.gidnumber.Value;
+                    entry.uidnumber.Value = baseUidNumber + x;
+                    entry.homedirectory.Value = "/";
+                    entry.cn.Value.AddRange(group.cn.Value);
+                    entry.ou.Value.AddRange(group.ou.Value);
+                    entry.objectClass.Value.Add(ObjectClass.posixAccount);
+
+                }
+
+                entry.cn.Value.Add($"{fn} {ln}");
 
                 isUnique = !dnLut.Contains(entry.dn);
 
                 if (isUnique)
                     dnLut.Add(entry.dn);
-                
+
                 else
                     tw.WriteLine($"Retry User: {x}");
             }
-
-            entries.Add(entry);
 
             // Generate UID based on Name
             var uid = new string(Guid.NewGuid().ToString("n").Take(4).ToArray());
@@ -88,11 +165,6 @@ public class EntityGenerator
                 : entry.fn.Value.Substring(0, entry.fn.Value.Length) + entry.gn.Value.Substring(0, 1);
 
             entry.uid.Value = uid;
-
-            entry.objectClass.Value.Add(ObjectClass.top);
-            entry.objectClass.Value.Add(ObjectClass.person);
-            entry.objectClass.Value.Add(ObjectClass.organizationalPerson);
-            entry.objectClass.Value.Add(ObjectClass.inetOrgPerson);
 
             entry.HassAMAccountName = opts.CbType == CbType.MAD;
 
@@ -105,6 +177,8 @@ public class EntityGenerator
             entry.telephoneNumber.Value = $"+1 {ac} {Rnd.Next(100, 999)}-{Rnd.Next(1000, 9999)}";
             entry.userPassword.Value = opts.Password;
             entry.mobile.Value = "+1 " + ac + " " + Rnd.Next(100, 999) + $"-" + Rnd.Next(1000, 9999);
+
+            entries.Add(entry);
 
             //TODO: szervezeti szerepkör
         }
@@ -158,7 +232,7 @@ public class EntityGenerator
             r.Add(entry);
         }
 
-        return r;
+        return (r);
     }
 
     private List<LdapEntry> CreateAdmin(LdapEntryOptions p)
@@ -168,9 +242,9 @@ public class EntityGenerator
 
         LdapEntry entry = new LdapEntry(p.BaseDomain)
         {
-            cn = "admin",
+            cn = { Value = { "admin" } },
             description = { Value = "LDAP Administrator" },
-            userPassword = { Value = "Password1" },
+            userPassword = { Value = p.Password },
             changetype = { Value = p.ChangeType }
         };
 
@@ -194,10 +268,11 @@ public class EntityGenerator
         return entry;
     }
 
-    private string GetRand(string[] array)
+    private T GetRand<T>(T[] array)
     {
-        if (array.Length <= 0) throw new("Array length is 0");
+        var count = array.Length;
+        if (count <= 0) throw new("Array length is 0");
 
-        return array[Rnd.Next(array.Length)];
+        return array[Rnd.Next(count)];
     }
 }

@@ -11,4 +11,7 @@ public static class ObjectClass
     public const string person = nameof(person);
     public const string simpleSecurityObject = nameof(simpleSecurityObject);
     public const string top = nameof(top);
+    
+    public const string posixGroup = nameof(posixGroup);
+    public const string posixAccount = nameof(posixAccount);
 }
