@@ -1,5 +1,4 @@
-﻿using System.Text;
-
+﻿
 using LdapEntityGenerator.Entities;
 
 namespace LdapEntityGenerator;
@@ -63,7 +62,7 @@ public class EntityGenerator
 
         List<LdapEntry> r = new();
         if (!opts.OrgUnits.Any()) return r;
-        
+
         for (var i = 0; i < opts.Groups.Length; i++)
         {
             var @group = opts.Groups[i];
@@ -108,7 +107,7 @@ public class EntityGenerator
             {
                 entry = new LdapEntry(opts.BaseDomain)
                 {
-                    changetype = {Value = opts.ChangeType }
+                    changetype = { Value = opts.ChangeType }
                 };
 
                 // Get the random items for this Entry that we use in other things
@@ -123,20 +122,20 @@ public class EntityGenerator
 
                 entry.objectClass.Value.Add(ObjectClass.top);
                 entry.objectClass.Value.Add(ObjectClass.person);
-                entry.objectClass.Value.Add(ObjectClass.inetOrgPerson);
+                entry.objectClass.Value.Add(ObjectClass.organizationalPerson);
 
                 if (groups is null || !groups.Any())
                 {
                     entry.ou.Value.Add(opts.RootOu);
                     entry.ou.Value.Add(GetRand(opts.OrgUnits));
-                    
-                    entry.objectClass.Value.Add(ObjectClass.organizationalPerson);
+
+                    entry.objectClass.Value.Add(ObjectClass.user);
 
                 }
                 else
                 {
                     var group = GetRand(groups);
-                    
+
                     entry.gidnumber.Value = group.gidnumber.Value;
                     entry.uidnumber.Value = baseUidNumber + x;
                     entry.homedirectory.Value = "/";
@@ -165,6 +164,7 @@ public class EntityGenerator
                 : entry.fn.Value.Substring(0, entry.fn.Value.Length) + entry.gn.Value.Substring(0, 1);
 
             entry.uid.Value = uid;
+            entry.sAMAccountName.Value = uid;
 
             entry.HassAMAccountName = opts.CbType == CbType.MAD;
 
@@ -179,6 +179,11 @@ public class EntityGenerator
             entry.mobile.Value = "+1 " + ac + " " + Rnd.Next(100, 999) + $"-" + Rnd.Next(1000, 9999);
 
             entries.Add(entry);
+
+            entry.unicodePwd.Value = "IgBBAG4ARQB4AGEAbQBwAGwAZQBQAGEAcwBzAHcAbwByAGQAMQAhACIA";
+            entry.userAccountControl.Value = "512";
+            entry.accountExpires.Value = "9223372036854775807";
+            entry.userPrincipalName.Value = uid + "@yettel.com";
 
             //TODO: szervezeti szerepkör
         }

@@ -23,6 +23,11 @@ public class LdapEntryAttribute<T>
 
     public string AsAttribute()
     {
-        return $"{Name}: {Value}";
+        return $"{Name}:{Value}";
+    }
+
+    public string AsAttributeWOSpace()
+    {
+        return $"{Name}:{Value}";
     }
 }

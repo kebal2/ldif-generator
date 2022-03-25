@@ -9,14 +9,18 @@ public class LdapEntry : IRenderableEntry
     public LdapEntryAttribute<string> telephoneNumber { get; } = new(nameof(telephoneNumber));
     public LdapEntryAttribute<string> mobile { get; } = new(nameof(mobile));
     public LdapEntryAttribute<string> mail { get; } = new(nameof(mail));
-    public LdapEntryAttribute<string> sn => new(nameof(sn),fn.Value);
+    public LdapEntryAttribute<string> unicodePwd { get; } = new(nameof(unicodePwd) + ":");
+    public LdapEntryAttribute<string> accountExpires { get; } = new(nameof(accountExpires));
+    public LdapEntryAttribute<string> userPrincipalName { get; } = new(nameof(userPrincipalName));
+    public LdapEntryAttribute<string> userAccountControl { get; } = new(nameof(userAccountControl));
+    public LdapEntryAttribute<string> sn => new(nameof(sn), fn.Value);
     public bool HassAMAccountName { get; set; }
-    public string sAMAccountName => HassAMAccountName ? uid.Value : string.Empty;
+    public LdapEntryAttribute<string> sAMAccountName { get; } = new(nameof(sAMAccountName));
     public LdapEntryAttributeList<string> ou { get; } = new(nameof(ou));
     public LdapEntryAttributeList<string> objectClass { get; } = new(nameof(objectClass));
 
     public LdapEntryAttributeList<string> cn { get; } = new(nameof(cn));
-    
+
     public LdapEntryAttribute<int?> gidnumber { get; } = new(nameof(gidnumber));
     public LdapEntryAttribute<int?> uidnumber { get; } = new(nameof(uidnumber));
     public LdapEntryAttribute<string> homedirectory { get; } = new(nameof(homedirectory));
@@ -60,15 +64,15 @@ public class LdapEntry : IRenderableEntry
         if (!string.IsNullOrEmpty(l.Value)) sb.AppendLine(l.AsAttribute());
         if (!string.IsNullOrEmpty(mobile.Value)) sb.AppendLine(mobile.AsAttribute());
         if (!string.IsNullOrEmpty(homedirectory.Value)) sb.AppendLine(homedirectory.AsAttribute());
-        
+
         sb.Append(objectClass.AsAttribute());
 
 
         if (!cn.Value.Any() && ou.Value.Any()) sb.AppendLine(ou.LastAsAttribute());
-        
+
         if (!string.IsNullOrEmpty(sn.Value)) sb.AppendLine(sn.AsAttribute());
 
-        if (HassAMAccountName) sb.AppendLine(sAMAccountName);
+        if (!string.IsNullOrEmpty(sAMAccountName.Value)) sb.AppendLine(sAMAccountName.AsAttribute());
 
         if (!string.IsNullOrEmpty(telephoneNumber.Value)) sb.AppendLine(telephoneNumber.AsAttribute());
 
@@ -78,6 +82,11 @@ public class LdapEntry : IRenderableEntry
 
         if (uidnumber.Value.HasValue) sb.AppendLine(uidnumber.AsAttribute());
         if (!string.IsNullOrEmpty(userPassword.Value)) sb.AppendLine(userPassword.AsAttribute());
+
+        if (!string.IsNullOrEmpty(userAccountControl.Value)) sb.AppendLine(userAccountControl.AsAttribute());
+        if (!string.IsNullOrEmpty(unicodePwd.Value)) sb.AppendLine(unicodePwd.AsAttributeWOSpace());
+        if (!string.IsNullOrEmpty(accountExpires.Value)) sb.AppendLine(accountExpires.AsAttribute());
+        if (!string.IsNullOrEmpty(userPrincipalName.Value)) sb.AppendLine(userPrincipalName.AsAttribute());
 
         return sb.ToString();
     }
