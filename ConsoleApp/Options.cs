@@ -43,10 +43,10 @@ public class Options
 
     [Option('s', "fileSizeLimit", Required = false, HelpText = "Set generated file size limit.", Default = 2_000_000)]
     public int FileSizeLimit { get; set; }
-    
+
     [Option('x', "outputPath", Required = false, HelpText = "Set output file path.", Default = ".")]
     public string OutputPath { get; set; }
-    
+
     [Option('f', "fileName", Required = false, HelpText = "Set output file name.", Default = "output.ldif")]
     public string FileName { get; set; }
 }
