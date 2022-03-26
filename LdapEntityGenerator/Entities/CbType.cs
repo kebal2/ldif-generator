@@ -4,5 +4,5 @@ public enum CbType
 {
     MAD, //ActiveDirectory
     GENERIC,
-    EDIRECTORY
+    // EDIRECTORY
 }
