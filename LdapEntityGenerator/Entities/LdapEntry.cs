@@ -4,16 +4,16 @@ namespace LdapEntityGenerator.Entities;
 
 public class LdapEntry : IRenderableEntry
 {
-    public LdapEntryAttribute<string> initials => new(nameof(initials), string.IsNullOrEmpty(gn.Value) ? string.Empty : $"{gn.Value.First()}. {fn.Value.First()}.");
+    public LdapEntryAttribute<string> initials => new(nameof(initials), value: string.IsNullOrEmpty(gn.Value) ? string.Empty : $"{gn.Value.First()}. {fn.Value.First()}.");
     public LdapEntryAttribute<string> userPassword { get; } = new(nameof(userPassword));
     public LdapEntryAttribute<string> telephoneNumber { get; } = new(nameof(telephoneNumber));
     public LdapEntryAttribute<string> mobile { get; } = new(nameof(mobile));
     public LdapEntryAttribute<string> mail { get; } = new(nameof(mail));
-    public LdapEntryAttribute<string> unicodePwd { get; } = new(nameof(unicodePwd) + ":");
-    public LdapEntryAttribute<string> accountExpires { get; } = new(nameof(accountExpires));
+    public LdapEntryAttribute<string> unicodePwd { get; } = new(nameof(unicodePwd), attributeDelim: "::");
+    public LdapEntryAttribute<long?> accountExpires { get; } = new(nameof(accountExpires));
     public LdapEntryAttribute<string> userPrincipalName { get; } = new(nameof(userPrincipalName));
-    public LdapEntryAttribute<string> userAccountControl { get; } = new(nameof(userAccountControl));
-    public LdapEntryAttribute<string> sn => new(nameof(sn), fn.Value);
+    public LdapEntryAttribute<int?> userAccountControl { get; } = new(nameof(userAccountControl));
+    public LdapEntryAttribute<string> sn => new(nameof(sn), value: fn.Value);
     public bool HassAMAccountName { get; set; }
     public LdapEntryAttribute<string> sAMAccountName { get; } = new(nameof(sAMAccountName));
     public LdapEntryAttributeList<string> ou { get; } = new(nameof(ou));
@@ -27,7 +27,7 @@ public class LdapEntry : IRenderableEntry
 
     public LdapEntryAttribute<string> fn { get; } = new(nameof(fn));
     public LdapEntryAttribute<string> gn { get; } = new(nameof(gn));
-    public LdapEntryAttribute<string> givenName => new(nameof(givenName), gn.Value);
+    public LdapEntryAttribute<string> givenName => new(nameof(givenName), value: gn.Value);
     public LdapEntryAttribute<string> ac { get; } = new(nameof(ac));
     public LdapEntryAttribute<string> l { get; } = new(nameof(l));
     public LdapEntryAttribute<string> uid { get; } = new(nameof(uid));
@@ -83,9 +83,9 @@ public class LdapEntry : IRenderableEntry
         if (uidnumber.Value.HasValue) sb.AppendLine(uidnumber.AsAttribute());
         if (!string.IsNullOrEmpty(userPassword.Value)) sb.AppendLine(userPassword.AsAttribute());
 
-        if (!string.IsNullOrEmpty(userAccountControl.Value)) sb.AppendLine(userAccountControl.AsAttribute());
-        if (!string.IsNullOrEmpty(unicodePwd.Value)) sb.AppendLine(unicodePwd.AsAttributeWOSpace());
-        if (!string.IsNullOrEmpty(accountExpires.Value)) sb.AppendLine(accountExpires.AsAttribute());
+        if (userAccountControl.Value.HasValue) sb.AppendLine(userAccountControl.AsAttribute());
+        if (!string.IsNullOrEmpty(unicodePwd.Value)) sb.AppendLine(unicodePwd.AsAttribute());
+        if (accountExpires.Value.HasValue) sb.AppendLine(accountExpires.AsAttribute());
         if (!string.IsNullOrEmpty(userPrincipalName.Value)) sb.AppendLine(userPrincipalName.AsAttribute());
 
         return sb.ToString();

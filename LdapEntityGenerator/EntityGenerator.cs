@@ -1,5 +1,4 @@
-﻿
-using LdapEntityGenerator.Entities;
+﻿using LdapEntityGenerator.Entities;
 
 namespace LdapEntityGenerator;
 
@@ -27,6 +26,8 @@ public class EntityGenerator
         public bool CreateBaseOrganization { get; set; }
         public bool CreateRootOu { get; set; }
         public string[] Groups { get; set; }
+
+        public UserAccessControlFlags UserAccountControl { get; set; }
     }
 
     RandomNameGeneratorNG.PersonNameGenerator nameGen = new RandomNameGeneratorNG.PersonNameGenerator();
@@ -130,7 +131,6 @@ public class EntityGenerator
                     entry.ou.Value.Add(GetRand(opts.OrgUnits));
 
                     entry.objectClass.Value.Add(ObjectClass.user);
-
                 }
                 else
                 {
@@ -142,7 +142,6 @@ public class EntityGenerator
                     entry.cn.Value.AddRange(group.cn.Value);
                     entry.ou.Value.AddRange(group.ou.Value);
                     entry.objectClass.Value.Add(ObjectClass.posixAccount);
-
                 }
 
                 entry.cn.Value.Add($"{fn} {ln}");
@@ -164,28 +163,40 @@ public class EntityGenerator
                 : entry.fn.Value.Substring(0, entry.fn.Value.Length) + entry.gn.Value.Substring(0, 1);
 
             entry.uid.Value = uid;
-            entry.sAMAccountName.Value = uid;
-
-            entry.HassAMAccountName = opts.CbType == CbType.MAD;
-
+            
             entry.description.Value = $"This is {entry.gn.Value} {entry.fn.Value}'s description";
 
-            entry.mail.Value = $"{entry.uid.Value}@{new string(Guid.NewGuid().ToString("n").Take(8).ToArray())}.com";
+            entry.mail.Value = $"{uid}@{opts.BaseDomain}";
 
             var ac = entry.ac.Value;
 
             entry.telephoneNumber.Value = $"+1 {ac} {Rnd.Next(100, 999)}-{Rnd.Next(1000, 9999)}";
-            entry.userPassword.Value = opts.Password;
+
             entry.mobile.Value = "+1 " + ac + " " + Rnd.Next(100, 999) + $"-" + Rnd.Next(1000, 9999);
 
             entries.Add(entry);
 
-            entry.unicodePwd.Value = "IgBBAG4ARQB4AGEAbQBwAGwAZQBQAGEAcwBzAHcAbwByAGQAMQAhACIA";
-            entry.userAccountControl.Value = "512";
-            entry.accountExpires.Value = "9223372036854775807";
-            entry.userPrincipalName.Value = uid + "@yettel.com";
-
-            //TODO: szervezeti szerepkör
+            switch (opts.CbType)
+            {
+                case CbType.MAD:
+                    //TODO: Maybe a modify entry needed to properly set:
+                    entry.unicodePwd.Value = opts.Password.AsBase64();
+                    
+                    entry.sAMAccountName.Value = uid;
+                    entry.HassAMAccountName = true;
+                    
+                    entry.userAccountControl.Value = (int)opts.UserAccountControl;
+                    entry.accountExpires.Value = Int64.MaxValue;
+                    entry.userPrincipalName.Value = entry.mail.Value;
+                    
+                    break;
+                
+                case CbType.GENERIC:
+                    
+                    entry.userPassword.Value = opts.Password;
+                    
+                    break;
+            }
         }
 
         return entries;
