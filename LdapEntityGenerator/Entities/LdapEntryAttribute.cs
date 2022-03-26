@@ -2,32 +2,30 @@
 
 public class LdapEntryAttribute<T>
 {
+    private readonly string attributeDelim;
+    private readonly string valueDelim;
     public string Name { get; }
     public T Value { get; set; }
 
-    public LdapEntryAttribute(string atributeName)
+    public LdapEntryAttribute(string attributeName, string attributeDelim = ": ", string valueDelim = "=")
     {
-        Name = atributeName;
+        this.attributeDelim = attributeDelim;
+        this.valueDelim = valueDelim;
+        Name = attributeName;
     }
 
-    public LdapEntryAttribute(string name, T value)
+    public LdapEntryAttribute(string name, T value, string attributeDelim = ": ", string valueDelim = "=") : this(name, attributeDelim, valueDelim)
     {
-        Name = name;
         Value = value;
     }
 
     public string AsValue()
     {
-        return $"{Name}={Value}";
+        return $"{Name}{valueDelim}{Value}";
     }
 
     public string AsAttribute()
     {
-        return $"{Name}: {Value}";
-    }
-
-    public string AsAttributeWOSpace()
-    {
-        return $"{Name}:{Value}";
+        return $"{Name}{attributeDelim}{Value}";
     }
 }
