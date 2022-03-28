@@ -40,6 +40,7 @@ public class LdapEntry : IRenderableEntry
     public LdapEntryAttribute<string> changetype { get; } = new(nameof(changetype));
     public LdapEntryAttribute<string> o { get; } = new(nameof(o));
     public LdapEntryAttributeList<string> dc { get; } = new(nameof(dc));
+    public LdapEntryAttributeList<string> member { get; } = new(nameof(member));
 
     public LdapEntry(string dc)
     {
@@ -87,6 +88,8 @@ public class LdapEntry : IRenderableEntry
         if (!string.IsNullOrEmpty(unicodePwd.Value)) sb.AppendLine(unicodePwd.AsAttribute());
         if (accountExpires.Value.HasValue) sb.AppendLine(accountExpires.AsAttribute());
         if (!string.IsNullOrEmpty(userPrincipalName.Value)) sb.AppendLine(userPrincipalName.AsAttribute());
+
+        if (member.Value.Any()) sb.Append(member.AsAttribute());
 
         return sb.ToString();
     }
