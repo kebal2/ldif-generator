@@ -2,7 +2,7 @@
 
 public enum CbType
 {
-    MAD, //ActiveDirectory
     GENERIC,
+    MAD, //ActiveDirectory
     // EDIRECTORY
 }
