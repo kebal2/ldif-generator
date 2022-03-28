@@ -28,6 +28,7 @@ else
         CreateBaseOrganization = o.CreateBaseOu,
         CreateRootOu = o.CreateRootOu,
         UserAccountControl = (UserAccessControlFlags)o.UserAccessControl,
+        GroupMemberCount = o.GroupMemberCount
     };
 
     IEntityGenerator? g = default;

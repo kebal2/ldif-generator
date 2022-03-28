@@ -52,48 +52,58 @@ namespace LdapEntityGenerator
             List<LdapEntry> groups = new();
             if (!opts.OrgUnits.Any()) return groups;
 
-            //TODO: lengths checks (users, opts.Groups)
-            var memberLists = Split(users, opts.Groups.Length).ToList();
-
             for (var i = 0; i < opts.Groups.Length; i++)
             {
-                var @group = opts.Groups[i];
+                var group = opts.Groups[i];
                 var destOu = ous[Rnd.Next(ous.Count)];
 
-                LdapEntry entry = new(opts.BaseDomain)
+                LdapEntry groupEntry = new(opts.BaseDomain)
                 {
-                    cn = { Value = { @group } },
+                    cn = { Value = { group } },
                     changetype = { Value = opts.ChangeType }
                 };
 
-                entry.ou.Value.AddRange(destOu.ou.Value);
+                groupEntry.ou.Value.AddRange(destOu.ou.Value);
 
-                entry.objectClass.Value.Add(ObjectClass.top);
-                entry.objectClass.Value.Add(ObjectClass.group);
-                foreach (var member in memberLists[i])
-                    //TODO: remove this hack
-                    entry.member.Value.Add(member.dn.Replace("dn: ", string.Empty));
+                groupEntry.objectClass.Value.Add(ObjectClass.top);
+                groupEntry.objectClass.Value.Add(ObjectClass.group);
 
-                groups.Add(entry);
+                groups.Add(groupEntry);
             }
+
+            var userdnsByGroupDn = GetUserdnsByGroupDn(groups, users, 4);
+
+            foreach (var group in groups)
+                if (userdnsByGroupDn.TryGetValue(group.dn.Value, out var members))
+                    group.member.Value.AddRange(members);
 
             return groups;
         }
 
-        private static IEnumerable<List<T>> Split<T>(List<T> source, int count) where T : class
+        private static Dictionary<string, List<string>> GetUserdnsByGroupDn(List<LdapEntry> groups, List<LdapEntry> users, int groupMemberCount)
         {
-            int rangeSize = source.Count / count;
-            int firstRangeSize = rangeSize + source.Count % count;
-            int index = 0;
+            if (users.Count < groupMemberCount)
+                throw new InvalidOperationException(nameof(GetUserdnsByGroupDn));
 
-            yield return source.GetRange(index, firstRangeSize);
-            index += firstRangeSize;
+            Dictionary<string, List<string>> userdnsByGroupDn = new();
+            Random rand = new();
 
-            while (index < source.Count)
+            foreach (var group in groups)
             {
-                yield return source.GetRange(index, rangeSize);
-                index += rangeSize;
+                List<string> userDns = new();
+
+                while (userDns.Count < groupMemberCount)
+                {
+                    var u = users[rand.Next(users.Count)];
+
+                    if (!userDns.Contains(u.dn.Value))
+                        userDns.Add(u.dn.Value);
+                }
+
+                userdnsByGroupDn.Add(group.dn.Value, userDns);
             }
+
+            return userdnsByGroupDn;
         }
 
         private static List<LdapEntry> CreateUsers(LdapEntryOptions opts, TextWriter tw)
@@ -130,8 +140,6 @@ namespace LdapEntityGenerator
             return users;
         }
 
-
-
         private static LdapEntry CreateUniqueUser(LdapEntryOptions opts, HashSet<string> dnLut)
         {
             LdapEntry? user = default;
@@ -159,12 +167,10 @@ namespace LdapEntityGenerator
                 user.ou.Value.Add(opts.RootOu);
                 user.cn.Value.Add($"{user.fn.Value} {user.gn.Value}");
 
-                isUnique = !dnLut.Contains(user.dn);
+                isUnique = !dnLut.Contains(user.dn.Value);
 
                 if (isUnique)
-                    dnLut.Add(user.dn);
-                else
-                    throw new Exception($"Unique user creation failed! The user: {user.cn.Value} already created!");
+                    dnLut.Add(user.dn.Value);
             }
 
             if (user is null)

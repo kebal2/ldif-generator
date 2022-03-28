@@ -118,10 +118,10 @@ namespace LdapEntityGenerator
 
                     entry.cn.Value.Add($"{fn} {ln}");
 
-                    isUnique = !dnLut.Contains(entry.dn);
+                    isUnique = !dnLut.Contains(entry.dn.Value);
 
                     if (isUnique)
-                        dnLut.Add(entry.dn);
+                        dnLut.Add(entry.dn.Value);
 
                     else
                         tw.WriteLine($"Retry User: {x}");

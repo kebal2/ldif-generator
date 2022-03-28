@@ -20,4 +20,5 @@ public class LdapEntryOptions
     public bool CreateRootOu { get; set; }
     public string[] Groups { get; set; }
     public UserAccessControlFlags UserAccountControl { get; set; }
+    public int GroupMemberCount { get; set; }
 }

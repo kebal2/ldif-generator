@@ -1,5 +1,4 @@
-﻿using System.ComponentModel;
-
+﻿
 using CommandLine;
 
 using LdapEntityGenerator.Entities;
@@ -49,4 +48,7 @@ public class Options
 
     [Option('f', "fileName", Required = false, HelpText = "Set output file name.", Default = "output.ldif")]
     public string FileName { get; set; }
+
+    [Option('m', "groupMemberCount", Required = false, HelpText = "Set member count of the groups.", Default = 1)]
+    public int GroupMemberCount { get; set; }
 }

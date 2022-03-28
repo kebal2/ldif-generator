@@ -32,9 +32,10 @@ public class LdapEntry : IRenderableEntry
     public LdapEntryAttribute<string> l { get; } = new(nameof(l));
     public LdapEntryAttribute<string> uid { get; } = new(nameof(uid));
 
-    public string dn => cn.Value.Any()
-        ? $"dn: {string.Join(",", new[] { cn.AsValue(true), ou.AsValue(true), dc.AsValue() }.Where(e => !String.IsNullOrEmpty(e)))}"
-        : $"dn: {string.Join(",", new[] { ou.AsValue(true), dc.AsValue() }.Where(e => !String.IsNullOrEmpty(e)))}";
+    public LdapEntryAttribute<string> dn => new(nameof(dn), value:
+        cn.Value.Any()
+        ? $"{string.Join(",", new[] { cn.AsValue(true), ou.AsValue(true), dc.AsValue() }.Where(e => !String.IsNullOrEmpty(e)))}"
+        : $"{string.Join(",", new[] { ou.AsValue(true), dc.AsValue() }.Where(e => !String.IsNullOrEmpty(e)))}");
 
     public LdapEntryAttribute<string> description { get; } = new(nameof(description));
     public LdapEntryAttribute<string> changetype { get; } = new(nameof(changetype));
@@ -51,7 +52,7 @@ public class LdapEntry : IRenderableEntry
     {
         StringBuilder sb = new();
 
-        sb.AppendLine(dn);
+        sb.AppendLine(dn.AsAttribute());
         sb.AppendLine(changetype.AsAttribute());
 
         if (objectClass.Value.Contains(ObjectClass.dcObject)) sb.AppendLine(dc.FirstAsAttribute());
