@@ -12,6 +12,7 @@ public static class ObjectClass
     public const string simpleSecurityObject = nameof(simpleSecurityObject);
     public const string top = nameof(top);
     public const string user = nameof(user);
+    public const string group = nameof(group);
 
     public const string posixGroup = nameof(posixGroup);
     public const string posixAccount = nameof(posixAccount);
