@@ -1,63 +1,17 @@
 ﻿using LdapEntityGenerator.Entities;
 
+using RandomNameGeneratorNG;
+
 namespace LdapEntityGenerator;
 
-public class EntityGenerator
+public abstract class EntityGenerator
 {
-    private static readonly Random Rnd = new();
+    protected static readonly Random Rnd = new();
+    protected static readonly PersonNameGenerator nameGen = new();
 
-    public class LdapEntryOptions
-    {
-        public LdapEntryOptions(string baseDomain, string rootOu, int userCount)
-        {
-            BaseDomain = baseDomain;
-            RootOu = rootOu;
-            UserCount = userCount;
-        }
+    public abstract List<LdapEntry> GetLdapEntries(LdapEntryOptions opts, TextWriter tw);
 
-        public string BaseDomain { get; set; }
-        public string RootOu { get; }
-        public int UserCount { get; }
-        public string[] OrgUnits { get; set; }
-        public string ChangeType { get; set; } = "add";
-        public CbType CbType { get; set; } = CbType.GENERIC;
-        public bool CreateAdmin { get; set; }
-        public string Password { get; set; }
-        public bool CreateBaseOrganization { get; set; }
-        public bool CreateRootOu { get; set; }
-        public string[] Groups { get; set; }
-
-        public UserAccessControlFlags UserAccountControl { get; set; }
-    }
-
-    RandomNameGeneratorNG.PersonNameGenerator nameGen = new RandomNameGeneratorNG.PersonNameGenerator();
-
-    public List<LdapEntry> GetLdapEntries(LdapEntryOptions opts, TextWriter tw)
-    {
-        List<LdapEntry> entries = new List<LdapEntry>();
-
-        if (opts.CreateBaseOrganization)
-            entries.Add(CreateBaseDn(opts));
-
-        entries.AddRange(CreateAdmin(opts));
-
-        if (opts.CreateBaseOrganization)
-            entries.Add(CreateRootOu(opts));
-
-        var createdOUs = CreateOUs(opts);
-        var groups = CreateGroups(opts, createdOUs);
-
-        entries.AddRange(createdOUs);
-        entries.AddRange(groups);
-
-        if (opts.UserCount <= 0) return entries;
-        entries.AddRange(CreateUsers(opts, tw, groups));
-
-        return entries;
-    }
-
-    // fix for entries like: CN=Billing\, Payment and Collection Office,OU=Recipients,OU=ADC,DC=pgsm,DC=hu
-    private List<LdapEntry> CreateGroups(LdapEntryOptions opts, IList<LdapEntry> ous)
+    public List<LdapEntry> CreateGroups(LdapEntryOptions opts, IList<LdapEntry> ous)
     {
         int baseGidNumber = 1000;
 
@@ -86,7 +40,7 @@ public class EntityGenerator
         return r;
     }
 
-    private List<LdapEntry> CreateUsers(LdapEntryOptions opts, TextWriter tw, IList<LdapEntry> groupsList)
+    public List<LdapEntry> CreateUsers(LdapEntryOptions opts, TextWriter tw, IList<LdapEntry> groupsList)
     {
         List<LdapEntry> entries = new List<LdapEntry>();
         HashSet<string> dnLut = new HashSet<string>();
@@ -163,7 +117,7 @@ public class EntityGenerator
                 : entry.fn.Value.Substring(0, entry.fn.Value.Length) + entry.gn.Value.Substring(0, 1);
 
             entry.uid.Value = uid;
-            
+
             entry.description.Value = $"This is {entry.gn.Value} {entry.fn.Value}'s description";
 
             entry.mail.Value = $"{uid}@{opts.BaseDomain}";
@@ -176,33 +130,13 @@ public class EntityGenerator
 
             entries.Add(entry);
 
-            switch (opts.CbType)
-            {
-                case CbType.MAD:
-                    //TODO: Maybe a modify entry needed to properly set:
-                    entry.unicodePwd.Value = opts.Password.AsBase64();
-                    
-                    entry.sAMAccountName.Value = uid;
-                    entry.HassAMAccountName = true;
-                    
-                    entry.userAccountControl.Value = (int)opts.UserAccountControl;
-                    entry.accountExpires.Value = Int64.MaxValue;
-                    entry.userPrincipalName.Value = entry.mail.Value;
-                    
-                    break;
-                
-                case CbType.GENERIC:
-                    
-                    entry.userPassword.Value = opts.Password;
-                    
-                    break;
-            }
+            entry.userPassword.Value = opts.Password;
         }
 
         return entries;
     }
 
-    private LdapEntry CreateBaseDn(LdapEntryOptions p)
+    public LdapEntry CreateBaseDn(LdapEntryOptions p)
     {
         var entry = new LdapEntry(p.BaseDomain)
         {
@@ -218,7 +152,7 @@ public class EntityGenerator
         return entry;
     }
 
-    private LdapEntry CreateRootOu(LdapEntryOptions p)
+    public LdapEntry CreateRootOu(LdapEntryOptions p)
     {
         var entry = new LdapEntry(p.BaseDomain);
 
@@ -231,7 +165,7 @@ public class EntityGenerator
         return entry;
     }
 
-    private List<LdapEntry> CreateOUs(LdapEntryOptions p)
+    public List<LdapEntry> CreateOUs(LdapEntryOptions p)
     {
         List<LdapEntry> r = new();
         if (!p.OrgUnits.Any()) return r;
@@ -251,7 +185,7 @@ public class EntityGenerator
         return (r);
     }
 
-    private List<LdapEntry> CreateAdmin(LdapEntryOptions p)
+    public List<LdapEntry> CreateAdmin(LdapEntryOptions p)
     {
         List<LdapEntry> r = new();
         if (!p.CreateAdmin) return r;
@@ -272,7 +206,7 @@ public class EntityGenerator
         return r;
     }
 
-    private LdapEntry GetEntry(string baseDn, string rootOU, string changeType)
+    public LdapEntry GetEntry(string baseDn, string rootOU, string changeType)
     {
         var entry = new LdapEntry(baseDn)
         {
@@ -284,7 +218,7 @@ public class EntityGenerator
         return entry;
     }
 
-    private T GetRand<T>(T[] array)
+    private static T GetRand<T>(T[] array)
     {
         var count = array.Length;
         if (count <= 0) throw new("Array length is 0");
