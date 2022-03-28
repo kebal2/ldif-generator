@@ -1,61 +1,25 @@
 ﻿using LdapEntityGenerator.Entities;
+using LdapEntityGenerator.Interfaces;
 
 namespace LdapEntityGenerator
 {
-    public interface IGeneric
+    public static class LdapEntryExtensions
     {
-        List<LdapEntry> GetLdapEntries(LdapEntryOptions opts, TextWriter tw);
-        List<LdapEntry> CreateGroups(LdapEntryOptions opts, IList<LdapEntry> ous);
-        List<LdapEntry> CreateUsers(LdapEntryOptions opts, TextWriter tw, IList<LdapEntry> groupsList);
-        LdapEntry CreateBaseDn(LdapEntryOptions opts);
-        LdapEntry CreateRootOu(LdapEntryOptions opts);
-        List<LdapEntry> CreateOUs(LdapEntryOptions opts);
-        List<LdapEntry> CreateAdmin(LdapEntryOptions opts);
-        LdapEntry GetEntry(string baseDn, string rootOU, string changeType);
-    }
-
-    public class Generic : EntityGenerator, IGeneric
-    {
-        public override List<LdapEntry> GetLdapEntries(LdapEntryOptions opts, TextWriter tw)
+        public static string GenerateUserId(this LdapEntry user)
         {
-            List<LdapEntry> entries = new List<LdapEntry>();
+            var uid = new string(Guid.NewGuid().ToString("n").Take(4).ToArray());
 
-            if (opts.CreateBaseOrganization)
-                entries.Add(CreateBaseDn(opts));
+            uid += user.fn.Value.Length >= 7
+                ? string.Concat(user.fn.Value.AsSpan(0, 7), user.gn.Value.AsSpan(0, 1))
+                : string.Concat(user.fn.Value.AsSpan(0, user.fn.Value.Length), user.gn.Value.AsSpan(0, 1));
 
-            entries.AddRange(CreateAdmin(opts));
-
-            if (opts.CreateBaseOrganization)
-                entries.Add(CreateRootOu(opts));
-
-            var createdOUs = CreateOUs(opts);
-            var groups = CreateGroups(opts, createdOUs);
-
-            entries.AddRange(createdOUs);
-            entries.AddRange(groups);
-
-            if (opts.UserCount <= 0) return entries;
-            entries.AddRange(CreateUsers(opts, tw, groups));
-
-            return entries;
+            return uid;
         }
     }
 
-    public interface IMad
+    public class MadEntityGenerator : BaseEntityGenerator, IMadEntityGenerator
     {
-        List<LdapEntry> GetLdapEntries(LdapEntryOptions opts, TextWriter tw);
-        List<LdapEntry> CreateGroups(LdapEntryOptions opts, IList<LdapEntry> ous);
-        List<LdapEntry> CreateUsers(LdapEntryOptions opts, TextWriter tw);
-        LdapEntry CreateBaseDn(LdapEntryOptions opts);
-        LdapEntry CreateRootOu(LdapEntryOptions opts);
-        List<LdapEntry> CreateOUs(LdapEntryOptions opts);
-        List<LdapEntry> CreateAdmin(LdapEntryOptions opts);
-        LdapEntry GetEntry(string baseDn, string rootOU, string changeType);
-    }
-
-    public class Mad : EntityGenerator, IMad
-    {
-        public override List<LdapEntry> GetLdapEntries(LdapEntryOptions opts, TextWriter tw)
+        public List<LdapEntry> GetLdapEntries(LdapEntryOptions opts, TextWriter tw)
         {
             List<LdapEntry> entries = new();
 
@@ -83,7 +47,7 @@ namespace LdapEntityGenerator
             return entries;
         }
 
-        private List<LdapEntry> CreateGroups(LdapEntryOptions opts, IList<LdapEntry> ous, List<LdapEntry> users)
+        private static List<LdapEntry> CreateGroups(LdapEntryOptions opts, IList<LdapEntry> ous, List<LdapEntry> users)
         {
             List<LdapEntry> groups = new();
             if (!opts.OrgUnits.Any()) return groups;
@@ -132,7 +96,7 @@ namespace LdapEntityGenerator
             }
         }
 
-        public List<LdapEntry> CreateUsers(LdapEntryOptions opts, TextWriter tw)
+        private static List<LdapEntry> CreateUsers(LdapEntryOptions opts, TextWriter tw)
         {
             List<LdapEntry> users = new();
             HashSet<string> dnLut = new();
@@ -144,7 +108,7 @@ namespace LdapEntityGenerator
 
                 LdapEntry user = CreateUniqueUser(opts, dnLut);
 
-                var userId = GenerateUserId(user);
+                var userId = user.GenerateUserId();
 
                 user.uid.Value = userId;
                 user.sAMAccountName.Value = userId;
@@ -166,16 +130,7 @@ namespace LdapEntityGenerator
             return users;
         }
 
-        private static string GenerateUserId(LdapEntry user)
-        {
-            var uid = new string(Guid.NewGuid().ToString("n").Take(4).ToArray());
 
-            uid += user.fn.Value.Length >= 7
-                ? string.Concat(user.fn.Value.AsSpan(0, 7), user.gn.Value.AsSpan(0, 1))
-                : string.Concat(user.fn.Value.AsSpan(0, user.fn.Value.Length), user.gn.Value.AsSpan(0, 1));
-
-            return uid;
-        }
 
         private static LdapEntry CreateUniqueUser(LdapEntryOptions opts, HashSet<string> dnLut)
         {

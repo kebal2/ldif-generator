@@ -5,6 +5,7 @@ using App;
 using CommandLine;
 
 using LdapEntityGenerator;
+using LdapEntityGenerator.Interfaces;
 
 Options? o = default;
 
@@ -29,23 +30,17 @@ else
         UserAccountControl = (UserAccessControlFlags)o.UserAccessControl,
     };
 
-    EntityGenerator? g = default;
+    IEntityGenerator? g = default;
 
-    switch (o.LdifType)
+    g = o.LdifType switch
     {
-        case LdapEntityGenerator.Entities.CbType.MAD:
-            g = new Mad();
-            break;
-        case LdapEntityGenerator.Entities.CbType.GENERIC:
-            g = new Generic();
-            break;
-        default:
-            throw new Exception($"Unknown {nameof(o.LdifType)}: {o.LdifType}");
-    }
-
+        LdapEntityGenerator.Entities.CbType.MAD => new MadEntityGenerator(),
+        LdapEntityGenerator.Entities.CbType.GENERIC => new GenericEntityGenerator(),
+        _ => throw new Exception($"Unknown {nameof(o.LdifType)}: {o.LdifType}"),
+    };
     var lDif = g.GetLdapEntries(p, Console.Out);
 
-    LdifFileRenderer renderer = new LdifFileRenderer();
+    LdifFileRenderer renderer = new();
 
     var ldifChunks = renderer.RenderDiff(lDif, o.FileSizeLimit);
 

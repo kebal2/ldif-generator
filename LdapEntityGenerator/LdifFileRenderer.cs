@@ -8,7 +8,7 @@ public class LdifFileRenderer
 {
     public string[] RenderDiff(IList<LdapEntry> entries, int chunkSize = 2_000_000)
     {
-        HashSet<string> chunks = new HashSet<string>();
+        HashSet<string> chunks = new();
 
         var output = NewChunk();
 
@@ -21,16 +21,16 @@ public class LdifFileRenderer
                 chunks.Add(output.ToString());
                 output = NewChunk();
             }
-            
+
             output.AppendLine(render);
         }
 
         chunks.Add(output.ToString());
         return chunks.ToArray();
     }
-    private StringBuilder NewChunk()
+    private static StringBuilder NewChunk()
     {
-        StringBuilder output = new StringBuilder();
+        StringBuilder output = new();
 
         output.AppendLine("version: 1");
         output.AppendLine();
