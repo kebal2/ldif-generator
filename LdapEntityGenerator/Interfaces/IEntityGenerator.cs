@@ -4,6 +4,6 @@ namespace LdapEntityGenerator.Interfaces
 {
     public interface IEntityGenerator
     {
-        List<LdapEntry> GetLdapEntries(LdapEntryOptions opts, TextWriter tw);
+        List<LdapEntry> GetLdapEntries(LdapEntryOptions opts);
     }
 }

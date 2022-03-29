@@ -19,7 +19,14 @@ namespace LdapEntityGenerator
 
     public class MadEntityGenerator : BaseEntityGenerator, IMadEntityGenerator
     {
-        public List<LdapEntry> GetLdapEntries(LdapEntryOptions opts, TextWriter tw)
+        private readonly TextWriter tw;
+
+        public MadEntityGenerator(TextWriter tw)
+        {
+            this.tw = tw;
+        }
+
+        public List<LdapEntry> GetLdapEntries(LdapEntryOptions opts)
         {
             List<LdapEntry> entries = new();
 
@@ -52,9 +59,8 @@ namespace LdapEntityGenerator
             List<LdapEntry> groups = new();
             if (!opts.OrgUnits.Any()) return groups;
 
-            for (var i = 0; i < opts.Groups.Length; i++)
+            foreach (var group in opts.Groups)
             {
-                var group = opts.Groups[i];
                 var destOu = ous[Rnd.Next(ous.Count)];
 
                 LdapEntry groupEntry = new(opts.BaseDomain)
@@ -150,14 +156,12 @@ namespace LdapEntityGenerator
             {
                 user = new LdapEntry(opts.BaseDomain)
                 {
-                    changetype = { Value = opts.ChangeType }
+                    changetype = { Value = opts.ChangeType },
+                    fn = { Value = NameGen.GenerateRandomFirstName() },
+                    gn = { Value = NameGen.GenerateRandomLastName() },
+                    ac = { Value = (Rnd.Next(8999) + 1000).ToString() },
+                    l = { Value = new RandomNameGeneratorNG.PlaceNameGenerator().GenerateRandomPlaceName() }
                 };
-
-                user.fn.Value = nameGen.GenerateRandomFirstName();
-                user.gn.Value = nameGen.GenerateRandomLastName();
-
-                user.ac.Value = (Rnd.Next(8999) + 1000).ToString();
-                user.l.Value = new RandomNameGeneratorNG.PlaceNameGenerator().GenerateRandomPlaceName();
 
                 user.objectClass.Value.Add(ObjectClass.top);
                 user.objectClass.Value.Add(ObjectClass.person);
@@ -166,7 +170,7 @@ namespace LdapEntityGenerator
 
                 user.ou.Value.Add(opts.RootOu);
                 user.cn.Value.Add($"{user.fn.Value} {user.gn.Value}");
-
+                
                 isUnique = !dnLut.Contains(user.dn.Value);
 
                 if (isUnique)

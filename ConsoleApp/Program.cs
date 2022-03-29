@@ -35,11 +35,11 @@ else
 
     g = o.LdifType switch
     {
-        LdapEntityGenerator.Entities.CbType.MAD => new MadEntityGenerator(),
-        LdapEntityGenerator.Entities.CbType.GENERIC => new GenericEntityGenerator(),
+        LdapEntityGenerator.Entities.CbType.MAD => new MadEntityGenerator(Console.Out),
+        LdapEntityGenerator.Entities.CbType.GENERIC => new GenericEntityGenerator(Console.Out),
         _ => throw new Exception($"Unknown {nameof(o.LdifType)}: {o.LdifType}"),
     };
-    var lDif = g.GetLdapEntries(p, Console.Out);
+    var lDif = g.GetLdapEntries(p);
 
     LdifFileRenderer renderer = new();
 

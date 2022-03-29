@@ -5,7 +5,14 @@ namespace LdapEntityGenerator
 {
     public class GenericEntityGenerator : BaseEntityGenerator, IGenericEntityGenerator
     {
-        public List<LdapEntry> GetLdapEntries(LdapEntryOptions opts, TextWriter tw)
+        private readonly TextWriter tw;
+
+        public GenericEntityGenerator(TextWriter tw)
+        {
+            this.tw = tw;
+        }
+
+        public List<LdapEntry> GetLdapEntries(LdapEntryOptions opts)
         {
             List<LdapEntry> entries = new();
 
@@ -84,8 +91,8 @@ namespace LdapEntityGenerator
                     };
 
                     // Get the random items for this Entry that we use in other things
-                    var fn = nameGen.GenerateRandomFirstName();
-                    var ln = nameGen.GenerateRandomLastName();
+                    var fn = NameGen.GenerateRandomFirstName();
+                    var ln = NameGen.GenerateRandomLastName();
 
                     entry.fn.Value = fn;
                     entry.gn.Value = ln;
