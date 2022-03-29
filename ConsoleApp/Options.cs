@@ -19,16 +19,16 @@ public class Options
     [Option('p', "password", Required = false, HelpText = "Set user password.", Default = "AnExamplePassword1!")]
     public string Password { get; set; }
 
-    [Option('a', "createAdmin", Required = false, HelpText = "Should create admin user.", Default = true)]
+    [Option('a', "createAdmin", Required = false, HelpText = "Should create admin user.", Default = false)]
     public bool CreateAdmin { get; set; }
 
-    [Option('e', "createBaseOu", Required = false, HelpText = "Should create base organization unit.", Default = true)]
+    [Option('e', "createBaseOu", Required = false, HelpText = "Should create base organization unit.", Default = false)]
     public bool CreateBaseOu { get; set; }
 
     [Option('b', "baseDomain", Required = false, HelpText = "Base domain name.", Default = "example.org")]
     public string BaseDomain { get; set; }
 
-    [Option('y', "createRootOu", Required = false, HelpText = "Should create root organization unit.", Default = true)]
+    [Option('y', "createRootOu", Required = false, HelpText = "Should create root organization unit.", Default = false)]
     public bool CreateRootOu { get; set; }
 
     [Option('r', "rootOu", Required = false, HelpText = "Should create root organization unit.", Default = "RootOU")]
