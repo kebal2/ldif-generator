@@ -18,10 +18,11 @@ if (o is null)
     Console.ReadKey();
 else
 {
+    var offset = 1;
     var p = new LdapEntryOptions(o.BaseDomain, o.RootOu, o.UserCount)
     {
-        OrgUnits = Enumerable.Range(1, o.OuCount).Select(i => $"organizationUnit{i:0000}").ToArray(),
-        Groups = Enumerable.Range(1, o.GroupCount).Select(i => $"group{i:0000}").ToArray(),
+        OrgUnits = Enumerable.Range(offset, o.OuCount + offset).Select(i => $"organizationUnit{i:0000}").ToArray(),
+        Groups = Enumerable.Range(offset, o.GroupCount + offset).Select(i => $"group{i:0000}").ToArray(),
 
         CreateAdmin = o.CreateAdmin,
         Password = @$"""{o.Password}""",
