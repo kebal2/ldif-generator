@@ -1,4 +1,5 @@
-﻿namespace LdapEntityGenerator.Entities;
+﻿// ReSharper disable InconsistentNaming
+namespace LdapEntityGenerator.Entities;
 
 public static class ObjectClass
 {

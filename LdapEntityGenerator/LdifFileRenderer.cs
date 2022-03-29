@@ -28,6 +28,7 @@ public class LdifFileRenderer
         chunks.Add(output.ToString());
         return chunks.ToArray();
     }
+    
     private static StringBuilder NewChunk()
     {
         StringBuilder output = new();

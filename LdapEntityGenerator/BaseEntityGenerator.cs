@@ -7,7 +7,7 @@ namespace LdapEntityGenerator;
 public abstract class BaseEntityGenerator
 {
     protected static readonly Random Rnd = new();
-    protected static readonly PersonNameGenerator nameGen = new();
+    protected static readonly PersonNameGenerator NameGen = new();
 
     protected static LdapEntry CreateBaseDn(LdapEntryOptions p)
     {

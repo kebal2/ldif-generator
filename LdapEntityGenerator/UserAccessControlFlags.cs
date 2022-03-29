@@ -1,4 +1,7 @@
-﻿namespace LdapEntityGenerator;
+﻿// ReSharper disable InconsistentNaming
+// ReSharper disable UnusedMember.Global
+// ReSharper disable IdentifierTypo
+namespace LdapEntityGenerator;
 
 [Flags]
 public enum UserAccessControlFlags
