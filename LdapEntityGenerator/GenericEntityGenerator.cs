@@ -14,7 +14,7 @@ namespace LdapEntityGenerator
 
             entries.AddRange(CreateAdmin(opts));
 
-            if (opts.CreateBaseOrganization)
+            if (opts.CreateRootOu)
                 entries.Add(CreateRootOu(opts));
 
             var createdOUs = CreateOUs(opts);

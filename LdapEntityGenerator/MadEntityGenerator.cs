@@ -29,7 +29,7 @@ namespace LdapEntityGenerator
             if (opts.CreateAdmin)
                 entries.AddRange(CreateAdmin(opts));
 
-            if (opts.CreateBaseOrganization)
+            if (opts.CreateRootOu)
                 entries.Add(CreateRootOu(opts));
 
             if (opts.UserCount > 0)
