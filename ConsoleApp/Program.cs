@@ -7,6 +7,7 @@ using CommandLine;
 using LdapEntityGenerator;
 using LdapEntityGenerator.Interfaces;
 
+
 Options? o = default;
 
 Parser
@@ -14,8 +15,12 @@ Parser
     .ParseArguments<Options>(args)
     .WithParsed(opt => o = opt);
 
+Gui.Start<Options>( o => { });   
+
 if (o is null)
+{
     Console.ReadKey();
+}
 else
 {
     var offset = 1;
