@@ -39,17 +39,16 @@ namespace LdapEntityGenerator
             if (opts.CreateRootOu)
                 entries.Add(CreateRootOu(opts));
 
-            if (opts.UserCount > 0)
-            {
-                var createdOUs = CreateOUs(opts);
-                entries.AddRange(createdOUs);
+            if (opts.UserCount <= 0) return entries;
+            
+            var createdOUs = CreateOUs(opts);
+            entries.AddRange(createdOUs);
 
-                var users = CreateUsers(opts, tw);
-                entries.AddRange(users);
+            var users = CreateUsers(opts, tw);
+            entries.AddRange(users);
 
-                var groups = CreateGroups(opts, createdOUs, users);
-                entries.AddRange(groups);
-            }
+            var groups = CreateGroups(opts, createdOUs, users);
+            entries.AddRange(groups);
 
             return entries;
         }

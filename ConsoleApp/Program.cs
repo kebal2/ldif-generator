@@ -7,22 +7,9 @@ using CommandLine;
 using LdapEntityGenerator;
 using LdapEntityGenerator.Interfaces;
 
-
-Options? o = default;
-
-Parser
-    .Default
-    .ParseArguments<Options>(args)
-    .WithParsed(opt => o = opt);
-
-Gui.Start<Options>( o => { });   
-
-if (o is null)
+Gui.Start(o =>
 {
-    Console.ReadKey();
-}
-else
-{
+    
     var offset = 1;
     var p = new LdapEntryOptions(o.BaseDomain, o.RootOu, o.UserCount)
     {
@@ -64,7 +51,5 @@ else
         var path = Path.Combine(filePath, fileName);
 
         File.WriteAllText(path, ldifChunks[i]);
-
-        Console.Out.WriteLine(path);
     }
-}
+});
