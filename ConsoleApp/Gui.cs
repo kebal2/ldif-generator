@@ -18,8 +18,7 @@ internal static class Gui
         var menu = CreateMenu(top);
         top.Add(menu);
 
-        var form = new ConfigForm(post);
-        form.SetArrangement(win);
+        _ = new ConfigFormHandler(win,post);
 
         var statusBar = CreateStatusBar(top);
 
