@@ -1,6 +1,7 @@
-﻿using LdapEntityGenerator.Entities;
+﻿using System.ComponentModel;
+using System.ComponentModel.DataAnnotations;
 
-using NStack;
+using LdapEntityGenerator.Entities;
 
 using Terminal.Gui;
 
@@ -8,158 +9,56 @@ namespace App;
 
 public class ConfigForm
 {
-    private Label UserCountLabel { get; }
-    private TextField UserCount { get; }
+    [DisplayName("                 User count: ")] [DefaultValue(100)]
+    internal TextField UserCount { get; set; }
 
-    private Label GroupCountLabel { get; }
-    private TextField GroupCount { get; }
-    private Label OrganizationUnitLabel { get; }
-    private TextField OrganizationUnit { get; }
-    private Label UserPasswordLabel { get; }
-    private TextField UserPassword { get; }
-    private Label BaseDomainLabel { get; }
-    private TextField BaseDomain { get; }
-    private Label RootOULabel { get; }
-    private TextField RootOU { get; }
-    private CheckBox CreateAdminUser { get; }
-    private CheckBox CreateBaseOU { get; }
-    private CheckBox CreateRootOU { get; }
-    private RadioGroup Type { get; }
-    private FrameView FileTypeFrame { get; }
-    private Label UserAccessControlLabel { get; }
-    private TextField UserAccessControl { get; }
-    private Label FileSizeLimitLabel { get; }
-    private TextField FileSizeLimit { get; }
-    private Label OutputPathLabel { get; }
-    private TextField OutputPath { get; }
-    private Label FileNameLabel { get; }
-    private TextField FileName { get; }
-    private Label GroupMemberCountLabel { get; }
-    private TextField GroupMemberCount { get; }
+    [DisplayName("                Group count: ")] [DefaultValue(10)]
+    internal TextField GroupCount { get; set; }
 
-    private Button Post { get; }
+    [DisplayName("    Organization unit count: ")] [DefaultValue(10)]
+    internal TextField OrganizationUnitCount { get; set; }
 
-    public ConfigForm(Action<Options> post)
+    [DisplayName("         Group member count: ")] [DefaultValue(4)]
+    internal TextField GroupMemberCount { get; set; }
+
+    [DisplayName("              User password: ")] [DefaultValue("AnExamplePassword1")]
+    internal TextField UserPassword { get; set; }
+
+    [DisplayName("           Base domain name: ")] [DefaultValue("example.com")]
+    internal TextField BaseDomain { get; set; }
+
+    [DisplayName("Root organization unit name: ")] [DefaultValue("corp")]
+    internal TextField RootOU { get; set; }
+
+    [DisplayName("Should create admin user")] [DefaultValue(false)]
+    internal CheckBox CreateAdminUser { get; set; }
+
+    [DisplayName("Should create base organization unit")] [DefaultValue(false)]
+    internal CheckBox CreateBaseOU { get; set; }
+
+    [DisplayName("Should create root organization unit")] [DefaultValue(false)]
+    internal CheckBox CreateRootOU { get; set; }
+
+    [DisplayName("File Type to generate")] [DefaultValue(1)] [EnumDataType(typeof(CbType))]
+    internal RadioGroup Type { get; set; }
+
+    [DisplayName("User access control: ")] [DefaultValue(0x0200)]
+    internal TextField UserAccessControl { get; set; }
+
+    [DisplayName("        Output path: ")] [DefaultValue(".")]
+    internal TextField OutputPath { get; set; }
+
+    [DisplayName("          File name: ")] [DefaultValue("output.ldif")]
+    internal TextField FileName { get; set; }
+
+    [DisplayName("    File size limit: ")] [DefaultValue(2_000_000)]
+    internal TextField FileSizeLimit { get; set; }
+
+    [DisplayName("Generate")]
+    private Button Post { get; set; }
+
+    internal void SetPost(Action post)
     {
-        int startPositionY = 1;
-        int startPositionX = 3;
-
-        var userCount = ElemFactory.CreateTextField("User count: ", startPositionX, startPositionY, "1000");
-        var groupCount = ElemFactory.CreateTextField("Group count: ", userCount.label, "10");
-        var organizationUnit = ElemFactory.CreateTextField("Organization unit count: ", groupCount.label, "10");
-        var groupMemberCount = ElemFactory.CreateTextField("Group member count: ", organizationUnit.label, "1");
-        var userPassword = ElemFactory.CreateTextField("User password: ", groupMemberCount.label, "AnExamplePassword1");
-        var baseDomain = ElemFactory.CreateTextField("Base domain name: ", userPassword.label, "example.com");
-        var rootOu = ElemFactory.CreateTextField("Root organization unit: ", baseDomain.label, "ADC");
-
-        var createAdminUser = ElemFactory.CreateCheckBox("Should create administrative user", rootOu.label);
-        var createBaseOrganizationUnit = ElemFactory.CreateCheckBox("Should create base organization unit", createAdminUser);
-        var createRootOrganizationUnit = ElemFactory.CreateCheckBox("Should create root organization unit", createBaseOrganizationUnit);
-
-        var typeSelector = new RadioGroup(new ustring[] { "G_ENERIC", "_MAD" }, 1);
-
-        var frameTitle = "Ldif file type";
-        var fileTypeFrame = new FrameView(frameTitle)
-        {
-            X = Pos.Left(createRootOrganizationUnit), Y = Pos.Bottom(createRootOrganizationUnit) + 1,
-            Width = frameTitle.Length + 6, Height = 4
-        };
-        fileTypeFrame.Add(typeSelector);
-
-        var userAccessControl = ElemFactory.CreateTextField("User access control: ", fileTypeFrame, 0x0200.ToString(), yOffset: 1);
-
-        var fileSizeLimit = ElemFactory.CreateTextField("File size limit: ", userAccessControl.label, "2_000_000");
-        var outputPath = ElemFactory.CreateTextField("Output path: ", fileSizeLimit.label, ".");
-        var fileName = ElemFactory.CreateTextField("filename: ", outputPath.label, "output.ldif");
-
-        var postButton = new Button("Generate")
-        {
-            X = Pos.Left(fileName.label),
-            Y = Pos.Bottom(fileName.label) + 2,
-        };
-
-        postButton.Clicked += () =>
-        {
-            try
-            {
-                post(GetOptionSet());
-                MessageBox.Query(50, 7, "Success", "File generation finished!", "OK");
-            }
-            catch (Exception e)
-            {
-                MessageBox.ErrorQuery(50, 7, "Fail!", e.Message, "OK");
-            }
-        };
-
-        UserCountLabel = userCount.label;
-        UserCount = userCount.field;
-        GroupCountLabel = groupCount.label;
-        GroupCount = groupCount.field;
-        OrganizationUnitLabel = organizationUnit.label;
-        OrganizationUnit = organizationUnit.field;
-        UserPasswordLabel = userPassword.label;
-        UserPassword = userPassword.field;
-        BaseDomainLabel = baseDomain.label;
-        BaseDomain = baseDomain.field;
-        RootOULabel = rootOu.label;
-        RootOU = rootOu.field;
-        CreateAdminUser = createAdminUser;
-        CreateBaseOU = createBaseOrganizationUnit;
-        CreateRootOU = createRootOrganizationUnit;
-        Type = typeSelector;
-        FileTypeFrame = fileTypeFrame;
-        UserAccessControlLabel = userAccessControl.label;
-        UserAccessControl = userAccessControl.field;
-        FileSizeLimitLabel = fileSizeLimit.label;
-        FileSizeLimit = fileSizeLimit.field;
-        OutputPathLabel = outputPath.label;
-        OutputPath = outputPath.field;
-        FileNameLabel = fileName.label;
-        FileName = fileName.field;
-        GroupMemberCountLabel = groupMemberCount.label;
-        GroupMemberCount = groupMemberCount.field;
-
-        Post = postButton;
-    }
-
-    private Options GetOptionSet() => new()
-    {
-        Password = UserPassword.Text.ToString(),
-        BaseDomain = BaseDomain.Text.ToString(),
-        CreateAdmin = CreateAdminUser.Checked,
-        FileName = FileName.Text.ToString(),
-        GroupCount = int.Parse(GroupCount.Text.ToString()),
-        OuCount = int.Parse(OrganizationUnit.Text.ToString()),
-        OutputPath = OutputPath.Text.ToString(),
-        RootOu = RootOU.Text.ToString(),
-        UserCount = int.Parse(UserCount.Text.ToString()),
-        CreateBaseOu = CreateBaseOU.Checked,
-        CreateRootOu = CreateRootOU.Checked,
-        FileSizeLimit = int.Parse(FileSizeLimit.Text.ToString().Replace("_", "")),
-        GroupMemberCount = int.Parse(GroupMemberCount.Text.ToString()),
-        UserAccessControl = int.Parse(UserAccessControl.Text.ToString()),
-        LdifType = (CbType)Type.SelectedItem
-    };
-
-    public void SetArrangement(Window parent)
-    {
-        parent.Add(
-            UserCountLabel, UserCount,
-            GroupCountLabel, GroupCount,
-            OrganizationUnitLabel, OrganizationUnit,
-            GroupMemberCountLabel, GroupMemberCount,
-            UserPasswordLabel, UserPassword,
-            BaseDomainLabel, BaseDomain,
-            RootOULabel, RootOU,
-            CreateAdminUser,
-            CreateBaseOU,
-            CreateRootOU,
-            FileTypeFrame,
-            UserAccessControlLabel, UserAccessControl,
-            FileSizeLimitLabel, FileSizeLimit,
-            OutputPathLabel, OutputPath,
-            FileNameLabel, FileName,
-            Post
-        );
+        Post.Clicked += post;
     }
 }
