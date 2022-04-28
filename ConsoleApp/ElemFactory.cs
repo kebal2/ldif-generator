@@ -1,4 +1,8 @@
-﻿using Terminal.Gui;
+﻿using System.Reflection;
+
+using Microsoft.VisualBasic.FileIO;
+
+using Terminal.Gui;
 
 namespace App;
 
@@ -27,12 +31,15 @@ internal static class ElemFactory
         {
             X = Pos.Right(label),
             Y = Pos.Top(label),
-            Width = width
+            Width = width,
         };
 
         return (label, field);
     }
 
-    internal static CheckBox CreateCheckBox(string title, View reference, int xOffset = 0, int yOffset = 0) =>
-        new CheckBox(title) { X = Pos.Left(reference) + xOffset, Y = Pos.Bottom(reference) + yOffset };
+    internal static CheckBox CreateCheckBox(string title, Pos x, Pos y, bool defaultValue = false) =>
+        new CheckBox(title) { X = x, Y = y, Checked = defaultValue };
+
+    internal static CheckBox CreateCheckBox(string title, View reference, int xOffset = 0, int yOffset = 0, bool defaultValue = false) =>
+        new CheckBox(title) { X = Pos.Left(reference) + xOffset, Y = Pos.Bottom(reference) + yOffset, Checked = defaultValue };
 }
