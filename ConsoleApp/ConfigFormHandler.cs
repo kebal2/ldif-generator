@@ -23,7 +23,7 @@ public class ConfigFormHandler
             CreateAdmin = form.CreateAdminUser.Checked,
             FileName = form.FileName.Text.ToString(),
             GroupCount = int.Parse(form.GroupCount.Text.ToString()),
-            OuCount = int.Parse(form.OrganizationUnitCount.ToString()),
+            OuCount = int.Parse(form.OrganizationUnitCount.Text.ToString()),
             OutputPath = form.OutputPath.Text.ToString(),
             RootOu = form.RootOU.Text.ToString(),
             UserCount = int.Parse(form.UserCount.Text.ToString()),
