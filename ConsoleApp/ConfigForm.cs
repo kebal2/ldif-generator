@@ -30,7 +30,7 @@ public class ConfigForm
     [DisplayName("Root organization unit name: ")] [DefaultValue("corp")]
     internal TextField RootOU { get; set; }
 
-    [DisplayName("Should create admin user")] [DefaultValue(false)]
+    [DisplayName("Should create admin user")] [DefaultValue(false)] [ScreenPosition(MarginTop = 1, RelativeStart = 16)]
     internal CheckBox CreateAdminUser { get; set; }
 
     [DisplayName("Should create base organization unit")] [DefaultValue(false)]
@@ -39,10 +39,10 @@ public class ConfigForm
     [DisplayName("Should create root organization unit")] [DefaultValue(false)]
     internal CheckBox CreateRootOU { get; set; }
 
-    [DisplayName("File Type to generate")] [DefaultValue(1)] [EnumDataType(typeof(CbType))]
+    [DisplayName("File Type to generate")] [DefaultValue(1)] [EnumDataType(typeof(CbType))] [ScreenPosition(MarginTop = 1)]
     internal RadioGroup Type { get; set; }
 
-    [DisplayName("User access control: ")] [DefaultValue(0x0200)]
+    [DisplayName("User access control: ")] [DefaultValue(0x0200)] [ScreenPosition(MarginTop = 1, RelativeStart = -8)]
     internal TextField UserAccessControl { get; set; }
 
     [DisplayName("        Output path: ")] [DefaultValue(".")]
@@ -54,7 +54,7 @@ public class ConfigForm
     [DisplayName("    File size limit: ")] [DefaultValue(2_000_000)]
     internal TextField FileSizeLimit { get; set; }
 
-    [DisplayName("Generate")]
+    [DisplayName("Generate")] [ScreenPosition(MarginTop = 2, RelativeStart = 4)]
     private Button Post { get; set; }
 
     internal void SetPost(Action post)

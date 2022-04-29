@@ -9,7 +9,7 @@ namespace App;
 
 internal static class FormFactory
 {
-    public static T Get<T>(View parent, int startPositionX = 1, int startPositionY = 3) where T : new()
+    public static T Get<T>(View parent, int startPositionX = 1, int startPositionY = 2) where T : new()
     {
         var form = new T();
 
@@ -58,22 +58,32 @@ internal static class FormFactory
         var valueAttr = p.GetCustomAttribute(typeof(EnumDataTypeAttribute)) as EnumDataTypeAttribute;
         if (valueAttr is { }) values = Enum.GetNames(valueAttr.EnumType);
 
+        var styleAttr = p.GetCustomAttribute(typeof(ScreenPositionAttribute)) as ScreenPositionAttribute;
+
         return GetView<T>(
             startPositionX,
             startPositionY,
-            (title: name.DisplayName, type: p.PropertyType.Name, defaultValue: defaultValue?.Value, values),
+            (title: name.DisplayName, type: p.PropertyType.Name, defaultValue: defaultValue?.Value, values, style: styleAttr),
             referenceField
         );
     }
 
-    private static (View? label, View field) GetView<T>(int startPositionX, int startPositionY, (string title, string type, object? defaultValue, string[] values) f, View? referenceField)
+    private static (View? label, View field) GetView<T>(int startPositionX, int startPositionY, (string title, string type, object? defaultValue, string[] values, ScreenPositionAttribute style) f, View? referenceField)
     {
+        var absPos = f.style is {} && (f.style?.X != 0 || f.style?.Y != 0);
+        
+        var x = absPos ?  f.style?.X ?? 0: startPositionX;
+        var y = absPos ?  f.style?.Y ?? 0: startPositionY;
+
+        var offsetX = f.style?.RelativeStart ?? 0;
+        var offsetY = f.style?.MarginTop ?? 0;
+        
         switch (f.type)
         {
             case nameof(FieldType.TextField):
-                return referenceField is null
-                    ? ElemFactory.CreateTextField(f.title, startPositionX, startPositionY, f.defaultValue?.ToString() ?? "")
-                    : ElemFactory.CreateTextField(f.title, referenceField, f.defaultValue?.ToString() ?? "");
+                return referenceField is null || absPos
+                    ? ElemFactory.CreateTextField(f.title, x, y, f.defaultValue?.ToString() ?? "")
+                    : ElemFactory.CreateTextField(f.title, referenceField, f.defaultValue?.ToString() ?? "", offsetX: offsetX, offsetY: offsetY);
 
             case nameof(FieldType.CheckBox):
             {
@@ -81,8 +91,8 @@ internal static class FormFactory
                 if (f.defaultValue is bool v) df = v;
 
                 var elem = referenceField is null
-                    ? ElemFactory.CreateCheckBox(f.title, (Pos)startPositionX, (Pos)startPositionY, df)
-                    : ElemFactory.CreateCheckBox(f.title, referenceField, defaultValue: df);
+                    ? ElemFactory.CreateCheckBox(f.title, (Pos)x, (Pos)y, df)
+                    : ElemFactory.CreateCheckBox(f.title, referenceField, defaultValue: df, offsetX: offsetX, offsetY: offsetY);
 
                 return (null, elem);
             }
@@ -93,14 +103,14 @@ internal static class FormFactory
                 if (f.defaultValue is int v) df = v;
 
                 return (null, referenceField is null
-                    ? ElemFactory.CreateRadioGroup(f.title, f.values, (Pos)startPositionX, (Pos)startPositionY, df)
-                    : ElemFactory.CreateRadioGroup(f.title, f.values, referenceField, defaultValue: df));
+                    ? ElemFactory.CreateRadioGroup(f.title, f.values, (Pos)x, (Pos)y, df)
+                    : ElemFactory.CreateRadioGroup(f.title, f.values, referenceField, defaultValue: df, offsetX: offsetX, offsetY: offsetY));
             }
 
             case nameof(FieldType.Button):
                 return (null, referenceField is null
-                    ? ElemFactory.CreateButton(f.title, (Pos)startPositionX, (Pos)startPositionY)
-                    : ElemFactory.CreateButton(f.title, referenceField));
+                    ? ElemFactory.CreateButton(f.title, (Pos)x, (Pos)y)
+                    : ElemFactory.CreateButton(f.title, referenceField, offsetX: offsetX, offsetY: offsetY));
             default:
                 throw new ArgumentOutOfRangeException();
         }

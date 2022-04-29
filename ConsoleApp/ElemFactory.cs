@@ -22,9 +22,9 @@ internal static class ElemFactory
         return (label, field);
     }
 
-    internal static (Label label, TextField field) CreateTextField(string labelText, View relativeTo, string defaultValue = "", int width = DefaultWidth, int xOffset = 0, int yOffset = 0)
+    internal static (Label label, TextField field) CreateTextField(string labelText, View relativeTo, string defaultValue = "", int width = DefaultWidth, int offsetX = 0, int offsetY = 0)
     {
-        return CreateTextField(labelText, Pos.Left(relativeTo) + xOffset, Pos.Bottom(relativeTo) + yOffset, defaultValue, width);
+        return CreateTextField(labelText, Pos.Left(relativeTo) + offsetX, Pos.Bottom(relativeTo) + offsetY, defaultValue, width);
     }
 
     internal static CheckBox CreateCheckBox(string title, Pos x, Pos y, bool defaultValue = false)
@@ -32,9 +32,9 @@ internal static class ElemFactory
         return new(title) { X = x, Y = y, Checked = defaultValue, Id = title };
     }
 
-    internal static CheckBox CreateCheckBox(string title, View reference, int xOffset = 0, int yOffset = 0, bool defaultValue = false)
+    internal static CheckBox CreateCheckBox(string title, View reference, int offsetX = 0, int offsetY = 0, bool defaultValue = false)
     {
-        return CreateCheckBox(title, Pos.Left(reference) + xOffset, Pos.Bottom(reference) + yOffset, defaultValue);
+        return CreateCheckBox(title, Pos.Left(reference) + offsetX, Pos.Bottom(reference) + offsetY, defaultValue);
     }
 
     internal static (FrameView frame, RadioGroup field) CreateFramedRadioGroup(string title, string[] values, Pos x, Pos y, int defaultValue = 0)
@@ -53,10 +53,10 @@ internal static class ElemFactory
         return (frame, radioGroup);
     }
 
-    internal static (FrameView frame, RadioGroup field) CreateFramedRadioGroup(string title, string[] values, View reference, int xOffset = 0, int yOffset = 0, int defaultValue = 0)
+    internal static (FrameView frame, RadioGroup field) CreateFramedRadioGroup(string title, string[] values, View reference, int offsetX = 0, int offsetY = 0, int defaultValue = 0)
     {
-        var xPos = Pos.Left(reference) + xOffset;
-        var yPos = Pos.Bottom(reference) + 1 + yOffset;
+        var xPos = Pos.Left(reference) + offsetX;
+        var yPos = Pos.Bottom(reference) + 1 + offsetY;
 
         return CreateFramedRadioGroup(title, values, xPos, yPos, defaultValue);
     }
@@ -66,10 +66,10 @@ internal static class ElemFactory
         return new(values.Select(ustring.Make).ToArray(), defaultValue) { X = x, Y = y };
     }
 
-    internal static RadioGroup CreateRadioGroup(string title, string[] values, View reference, int xOffset = 0, int yOffset = 0, int defaultValue = 0)
+    internal static RadioGroup CreateRadioGroup(string title, string[] values, View reference, int offsetX = 0, int offsetY = 0, int defaultValue = 0)
     {
-        var xPos = Pos.Left(reference) + xOffset;
-        var yPos = Pos.Bottom(reference) + 1 + yOffset;
+        var xPos = Pos.Left(reference) + offsetX;
+        var yPos = Pos.Bottom(reference) + offsetY;
 
         return CreateRadioGroup(title, values, xPos, yPos, defaultValue);
     }
